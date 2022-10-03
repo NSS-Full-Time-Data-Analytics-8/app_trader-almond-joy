@@ -1,3 +1,6 @@
+/* Project: App Trader Data Analysis
+   Project Team: Almond Joy */
+
 /* Analysis for most popular content_rating in the Android Play Store.
    Conclusion: Over 80% of Android Play App Customers are in the 'Everyone' category 
    with 'Teen' constituting about 11%, together these categories make up over 90%

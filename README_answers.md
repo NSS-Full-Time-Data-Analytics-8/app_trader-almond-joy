@@ -40,8 +40,10 @@ a. Develop some general recommendations as to the price range, genre, content ra
 
 Recommendations:
 
-Invest in category_ratings for either 'Everyone/4+' or 'Teen/12+' Analysis indicates that the most popular content_rating category in the Android Play Store and Apple App Store are these two categories, which hold over 90% of the Android Play Store consumer market and almost 80% of the Apple App Store market.
+We advise investing in category_ratings for either 'Everyone/4+' or 'Teen/12+' Analysis indicates that the most popular content_rating category in the Android Play Store and Apple App Store are these two categories, which hold over 90% of the Android Play Store consumer market and almost 80% of the Apple App Store market.
 
+
+Analysis indicates that the largest number of apps fall in either the 'Games' or 'Family' category/genre. Over 50% of Apple's App Store apps fall in the 'Games' category. In the Android Play App, almost 20% of apps fall in the 'Family' category with 'Game' taking second place at about 11% of the market, equaling around 30% of the total apps available on the Android platform.
 
 
 Price range: We recommend a price range less than $2.00

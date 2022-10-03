@@ -53,37 +53,41 @@ WITH distinct_appstores AS
 	 	ELSE 25000 END AS avg_price_to_purchase
 FROM app_store_apps INNER JOIN play_store_apps USING(name))
 
-
 SELECT DISTINCT(name),
 	avg_price,
 	avg_rating,
 	--avg_review_count,
 	avg_price_to_purchase,
-	avg_price_to_purchase + (1000*(lifespan_yrs*12)) AS gross_cost,
-	(5000*(lifespan_yrs*12)) AS gross_profit,
-	((5000*(lifespan_yrs*12))) - (avg_price_to_purchase + (1000*(lifespan_yrs*12))) AS net_profit
+	(avg_price_to_purchase + (1000*(lifespan_yrs*12)))::money AS gross_cost,
+	(5000*(lifespan_yrs*12))::money AS gross_profit,
+	(((5000*(lifespan_yrs*12))) - (avg_price_to_purchase + (1000*(lifespan_yrs*12))))::money 
+		AS net_profit
 FROM distinct_appstores
---WHERE ((5000*(lifespan_yrs*12))) - (avg_price_to_purchase + (1000*(lifespan_yrs*12))) > 0
+--Searching for Halloween-themed apps 
+/*WHERE ((5000*(lifespan_yrs*12))) - (avg_price_to_purchase + (1000*(lifespan_yrs*12))) > 0
+	AND app_genre ILIKE('%game%') AND play_genre ILIKE('%game%')
+	ORDER BY net_profit DESC*/
+/*
+Temple Run, cost:145000, net profit: 455000
+Five Nights at Freddy's, cost:149900, net profit: 450100
+*/
 WHERE avg_price::numeric < 2 AND app_genre ILIKE('%game%') AND play_genre ILIKE('%game%')
 	AND app_content_rating = '4+' AND play_content_rating = 'Everyone'
 ORDER BY net_profit DESC
-LIMIT 10
+LIMIT 10;
 
 
---Price range recommendation: <1.99
+--Price range recommendation: <1.99 (top few hundred apps are at most $1.99)
 --Genre recommendation: 
 --	APP store: Games, Entertainment, Education
 --	PLAY store: Games, Family
 --Content Rating: 4+, 12+
 
-SELECT *
-FROM distinct_appstores
-WHERE avg_price::numeric < 2 AND (app_genre ILIKE('%games%') OR play_genre ILIKE('%games%'))
-
 
 
 --APP STORE QUERIES
 
+--CTE to append price to purchase to data tables
 WITH app_store_additions AS
 	(SELECT *,
 		CASE WHEN ((price::money + price::money)/2)::numeric >=2.5 THEN 
@@ -91,22 +95,76 @@ WITH app_store_additions AS
 	 		ELSE 25000 END AS app_price_to_purchase
 	FROM app_store_apps)
 
+--determining most profitable app store apps (proportional to highest rated)
 SELECT *,
 	app_price_to_purchase + (1000*(2*rating+1)*12) AS gross_cost,
 	(5000*(2*rating+1)*12) AS gross_profit,
 	((5000*(2*rating+1)*12)) - (app_price_to_purchase + (1000*(2*rating+1)*12)) AS net_profit
 FROM app_store_additions
 ORDER BY net_profit DESC;
---LIMIT 10
 
-SELECT content_rating, COUNT(name)
+
+--determining most frequent content rating apps
+SELECT content_rating, COUNT(*)
 FROM app_store_apps
 GROUP BY content_rating
-ORDER BY COUNT(name) DESC;
+ORDER BY COUNT(*) DESC;
+/*
+4+: 4433
+12+: 1155
+9+: 987
+17+: 622
+*/
 
+SELECT primary_genre, COUNT(*)
+FROM app_store_apps
+GROUP BY primary_genre
+ORDER BY COUNT(*) DESC;
+/* TOP THREE:
+1) Games (3862)
+2) Entertainment (535)
+3) Education (453)
+*/
 
 --PLAY STORE QUERIES
 
-SELECT *
+--CTE to append price to purchase to data table
+WITH play_store_additions AS
+	(SELECT *,
+		CASE WHEN ((price::money + price::money)/2)::numeric >=2.5 THEN 
+	 			(((price::money + price::money)/2)::numeric *10000)
+	 		ELSE 25000 END AS play_price_to_purchase
+	FROM play_store_apps)
+
+--determining most profitable app store apps (proportional to highest rated)
+SELECT *,
+	play_price_to_purchase + (1000*(2*rating+1)*12) AS gross_cost,
+	(5000*(2*rating+1)*12) AS gross_profit,
+	((5000*(2*rating+1)*12)) - (play_price_to_purchase + (1000*(2*rating+1)*12)) AS net_profit
+FROM play_store_additions
+ORDER BY net_profit DESC NULLS LAST;
+--LIMIT 10
+
+--determining most frequent content rating apps
+SELECT content_rating, COUNT(*)
 FROM play_store_apps
-WHERE name ILIKE('%Pewdiepie%');
+GROUP BY content_rating
+ORDER BY COUNT(*) DESC;
+/*
+Everyone: 8714
+Teen: 1208
+Mature 17+: 499
+Everyone 10+: 414
+Adults only 18+: 3
+Unrated: 2
+*/
+
+SELECT category, COUNT(*)
+FROM play_store_apps
+GROUP BY category
+ORDER BY COUNT(*) DESC;
+/* TOP THREE:
+1) FAMILY (1972)
+2) GAME (1144)
+3) TOOLS (843)
+*/
